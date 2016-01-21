@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import sun.reflect.generics.visitor.Reifier;
 
 /**
  *
@@ -284,7 +285,7 @@ public class Generador {
                 + (lista.get(lista.size()-2).getNombre()).toLowerCase()
                 + " con un "
                 + getNumero(lista.get(lista.size()-2).getValor())
-                + ". Las menos incidentes fueron las causas "
+                + "\\%. Las menos incidentes fueron las causas "
                 + getPreposicion(lista.get(0))
                 + (lista.get(0).getNombre()).toLowerCase()
                 + " con un "
@@ -329,10 +330,13 @@ public class Generador {
     }
     
     private String des1_05(List<RegistroDoble> lista){
+        String[] menores = lista.get(0).getNombre().split("-");
+        Double menorHombres = lista.get(0).getValor();
+        Double menorMujeres = lista.get(0).getValor2();
+        
         RegistroDoble[] mayores = getMayoresDobles(lista);
         String[] edadesHombres = mayores[1].getNombre().split("-");
         String[] edadesMujeres = mayores[0].getNombre().split("-");
-        String[] menores = lista.get(0).getNombre().split("-");
         String descripcion = "Para el grupo de edad y sexo"
                 + " se distinguen a las víctimas que oscilan"
                 + " entre las edades de "
@@ -340,21 +344,21 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " hombres y las edades de "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
+                + getNumeroComas(mayores[0].getValor2())
                 + " mujeres.\\\\ \\\\"
                 + "Dentro del grupo de víctimas con edades entre "
                 + menores[0]
                 + " y "
                 + menores[1]
                 + " años, se registraron "
-                + lista.get(0).getValor2() + " hombres y "
-                + lista.get(0).getValor() + " mujeres."
+                + getNumeroComas(menorHombres) + " hombres y "
+                + getNumeroComas(menorMujeres) + " mujeres."
                 ;
         return descripcion;
     }
@@ -379,23 +383,32 @@ public class Generador {
     }
     
     private String des1_07(List<RegistroDepto> lista){
+        lista = eliminarOtros(lista);
         String descripcion = "En la agrupación de robos y hurtos"
                 + " representados como la causa contra el patrimonio,"
                 + " el "
                 + lista.get(lista.size()-1).getNombre().toLowerCase()
                 + " registró "
                 + getNumeroComas(lista.get(lista.size()-1).getValor())
-                + " víctimas y a los de tipo "
+                + " víctimas y el "
                 + lista.get(lista.size()-2).getNombre().toLowerCase()
-                + " con "
+                + " "
                 + getNumeroComas(lista.get(lista.size()-2).getValor())
-                + " víctimas. Inverso se encuentran los de tipo "
+                + " víctimas. Inverso se encuentran el "
                 + lista.get(0).getNombre().toLowerCase()
                 + " con "
                 + getNumeroComas(lista.get(0).getValor())
                 + " víctimas como el menos incidente."
                 ;
         return descripcion;      
+    }
+    
+    private List<RegistroDepto> eliminarOtros(List<RegistroDepto> lista){
+        List<RegistroDepto> nueva = new ArrayList();
+        for (RegistroDepto lista1 : lista) {
+            if(!lista1.getNombre().equalsIgnoreCase("otros")) nueva.add(lista1);
+        }
+        return nueva;
     }
     
     private String des1_08(List<RegistroDepto> lista){
@@ -418,12 +431,12 @@ public class Generador {
     }
     
     private String des1_09(List<RegistroDepto> lista){
-        List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+        //List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
         String descripcion = "En las extorsiones por sexo, se refleja con un "
-                + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
+                + getNumero(lista.get(lista.size()-1).getValor())
                 + "\\% las extorsiones de "
                 + " hombres y con un "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + getNumero(lista.get(lista.size()-2).getValor())
                 + "\\% las de mujeres.\\\\ \\\\"
                 + "Se ignora el "
                 + getNumero(getRegistro(lista, "ignorado").getValor())
@@ -434,8 +447,8 @@ public class Generador {
     
     private String des1_10(List<RegistroDoble> lista){
         RegistroDoble[] mayores = getMayoresDobles(lista);
-        String[] edadesHombres = mayores[1].getNombre().split("-");
-        String[] edadesMujeres = mayores[0].getNombre().split("-");
+        String[] edadesHombres = mayores[0].getNombre().split("-");
+        String[] edadesMujeres = mayores[1].getNombre().split("-");
         String descripcion = "En el grupo de edad y sexo"
                 + " para la causa de extorsiones,"
                 + " sobresalen las víctimas hombres entre las edades de "
@@ -443,15 +456,15 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " extorsiones.\\\\ \\\\"
                 + "Entre las mujeres resaltan las víctimas entre "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
-                + "extorsiones."
+                + getNumeroComas(mayores[0].getValor2())
+                + " extorsiones."
                 ;
         return descripcion;
     }
@@ -479,24 +492,37 @@ public class Generador {
     
     private String des2_02(List<RegistroDepto> lista){
         List<RegistroDoble> porcentajes = getPorcentajeTotalDoble(lista);
-        String descripcion = "El comportamiento por tipo de causa"
+        imprimirLista(porcentajes);
+        /*System.out.println(getNumeroComas(porcentajes.get(porcentajes.size()-1).getValor2()));
+        System.out.println(getPreposicion(new RegistroDepto(porcentajes.get(porcentajes.size()-1).getNombre(), "0.0")));
+        System.out.println((porcentajes.get(porcentajes.size()-1).getNombre()).toLowerCase());
+        System.out.println(getNumero(porcentajes.get(porcentajes.size()-1).getValor()));
+        */String descripcion = "El comportamiento por tipo de causa"
                 + " muestra que "
                 + getNumeroComas(porcentajes.get(porcentajes.size()-1).getValor2())
                 + " fueron detenidos(as) por la causa "
-                + getPreposicion(new RegistroDepto(porcentajes.get(porcentajes.size()-1).getNombre(), ""))
+                + getPreposicion(new RegistroDepto(porcentajes.get(porcentajes.size()-1).getNombre(), "0.0"))
                 + (porcentajes.get(porcentajes.size()-1).getNombre()).toLowerCase()
                 + ", representada por un "
                 + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
                 + "\\% del total del trimestre, seguido de causas "
-                + getPreposicion(new RegistroDepto(porcentajes.get(porcentajes.size()-2).getNombre(), ""))
+                + getPreposicion(new RegistroDepto(porcentajes.get(porcentajes.size()-2).getNombre(), "0.0"))
                 + (porcentajes.get(porcentajes.size()-2).getNombre()).toLowerCase()
                 + " con "
                 + getNumeroComas(porcentajes.get(porcentajes.size()-2).getValor2())
-                + " detenidos(as), representada por un"
+                + " detenidos(as), representada por un "
                 + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
                 + "\\%."
                 ;
         return descripcion;      
+    }
+    
+    private void imprimirLista(List<RegistroDoble> lista){
+        System.out.println("Tamaño lista: " + lista.size());
+        for(int i=0; i<lista.size(); i++){
+            System.out.println("registro doble: " + lista.get(i).getNombre() + ", "
+             + lista.get(i).getValor() + ", " + lista.get(i).getValor2());
+        }
     }
     
     private String des2_03(List<RegistroDepto> lista){
@@ -534,10 +560,13 @@ public class Generador {
     }
     
     private String des2_05(List<RegistroDoble> lista){
+        String[] menores = lista.get(0).getNombre().split("-");
+        Double menorHombres = lista.get(0).getValor();
+        Double menorMujeres = lista.get(0).getValor2();
+        
         RegistroDoble[] mayores = getMayoresDobles(lista);
         String[] edadesHombres = mayores[1].getNombre().split("-");
         String[] edadesMujeres = mayores[0].getNombre().split("-");
-        String[] menores = lista.get(0).getNombre().split("-");
         String descripcion = "La posición en el grupo de edad y sexo"
                 + " que manifiesta alta incidencia en los(as) detenidos(as)"
                 + " oscila entre las edades de "
@@ -545,21 +574,21 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " hombres y las edades de "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
+                + getNumeroComas(mayores[0].getValor2())
                 + " mujeres.\\\\ \\\\"
                 + "Dentro del grupo de víctimas con edades entre "
                 + menores[0]
                 + " y "
                 + menores[1]
                 + " años, se registraron "
-                + lista.get(0).getValor2() + " hombres y "
-                + lista.get(0).getValor() + " mujeres."
+                + getNumeroComas(menorHombres) + " hombre(s) y "
+                + getNumeroComas(menorMujeres) + " mujer(es)."
                 ;
         return descripcion;
     }
@@ -584,23 +613,25 @@ public class Generador {
     }
     
     private String des2_07(List<RegistroDepto> lista){
+        lista = eliminarOtros(lista);
         String descripcion = "En la agrupación de robos y hurtos"
                 + " representados como la causa contra el patrimonio,"
                 + " el "
                 + lista.get(lista.size()-1).getNombre().toLowerCase()
                 + " registró "
                 + getNumeroComas(lista.get(lista.size()-1).getValor())
-                + " detenidos(as) y a los de tipo "
+                + " detenidos(as) y el "
                 + lista.get(lista.size()-2).getNombre().toLowerCase()
-                + " con "
+                + " "
                 + getNumeroComas(lista.get(lista.size()-2).getValor())
-                + " detenidos(as). Inverso se encuentran los de tipo "
+                + " detenidos(as). Inverso se encuentran el "
                 + lista.get(0).getNombre().toLowerCase()
                 + " con "
                 + getNumeroComas(lista.get(0).getValor())
                 + " detenidos(as) como el menos incidente."
                 ;
         return descripcion;      
+          
     }
     
     private String des2_08(List<RegistroDepto> lista){
@@ -623,21 +654,25 @@ public class Generador {
     }
     
     private String des2_09(List<RegistroDepto> lista){
-        List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+        //List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
         String descripcion = "En las extorsiones por sexo, se refleja con un "
-                + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
+                + getNumero(lista.get(lista.size()-1).getValor())
                 + "\\% los hombres "
                 + " detenidos y con un "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + getNumero(lista.get(lista.size()-2).getValor())
                 + "\\% las mujeres.\\\\ \\\\"
+                + "Se ignora el "
+                + getNumero(getRegistro(lista, "ignorado").getValor())
+                + "\\% de los casos."
                 ;
         return descripcion;      
     }
     
     private String des2_10(List<RegistroDoble> lista){
         RegistroDoble[] mayores = getMayoresDobles(lista);
-        String[] edadesHombres = mayores[1].getNombre().split("-");
-        String[] edadesMujeres = mayores[0].getNombre().split("-");
+        String[] edadesHombres = mayores[0].getNombre().split("-");
+        String[] edadesMujeres = mayores[1].getNombre().split("-");
+        
         String descripcion = "En el grupo de edad y sexo"
                 + " para la causa de extorsiones,"
                 + " sobresalen los hombres detenidos entre "
@@ -645,15 +680,15 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " detenidos.\\\\ \\\\"
                 + "Entre las mujeres resaltan las detenidas entre "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
-                + "detenidas."
+                + getNumeroComas(mayores[0].getValor2())
+                + " detenidas."
                 ;
         return descripcion;
     }
@@ -683,22 +718,22 @@ public class Generador {
         List<RegistroDoble> porcentajes = getPorcentajeTotalDoble(lista);
         String descripcion = "La distribución de sindicados(as)"
                 + " por el tipo de delito reporta con alta incidencia "
-                + getArticulo(porcentajes.get(porcentajes.size()-1).getNombre())
+                + getArticulo(porcentajes.get(porcentajes.size()-1).getNombre()) + " "
                 + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
                 + " con "
                 + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
                 + "\\%, seguido de "
-                + getArticulo(porcentajes.get(porcentajes.size()-2).getNombre())
+                + getArticulo(porcentajes.get(porcentajes.size()-2).getNombre()) + " "
                 + porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase()
                 + " con un "
                 + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
                 + "\\% y "
-                + getArticulo(porcentajes.get(porcentajes.size()-3).getNombre())
+                + getArticulo(porcentajes.get(porcentajes.size()-3).getNombre()) + " "
                 + porcentajes.get(porcentajes.size()-3).getNombre().toLowerCase()
                 + " con un "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + getNumero(porcentajes.get(porcentajes.size()-3).getValor())
                 + "\\%. Contrario están aquellos delitos con menor proporción como "
-                + getArticulo(porcentajes.get(0).getNombre())
+                + getArticulo(porcentajes.get(0).getNombre()) + " "
                 + porcentajes.get(0).getNombre().toLowerCase()
                 + " con "
                 + getNumero(porcentajes.get(0).getValor())
@@ -747,19 +782,19 @@ public class Generador {
     }
     
     private String des3_05(List<RegistroDepto> lista){
-        List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+        //List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
         String descripcion = "En el "
                 + this.trimestre + " trimestre de " + this.anio
                 + " sobresalió que de los sindicados, el "
-                + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
+                + getNumero(lista.get(0).getValor())
                 + "\\% eran "
-                + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
-                + ", el "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + lista.get(0).getNombre().toLowerCase()
+                + "s, el "
+                + getNumero(lista.get(1).getValor())
                 + "\\% "
-                + porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase()
-                + " y se desconoce el "
-                + getNumero(getIgnorado(lista))
+                + lista.get(1).getNombre().toLowerCase()
+                + "es y se desconoce el "
+                + getNumero(getRegistro(lista, "ignorado").getValor())
                 + "\\% de los casos."
                 ;
         return descripcion;      
@@ -776,15 +811,15 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " detenidos.\\\\ \\\\"
                 + "Entre las mujeres resaltan las detenidas entre "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
-                + "detenidas."
+                + getNumeroComas(mayores[0].getValor2())
+                + " detenidas."
                 ;
         return descripcion;
     }
@@ -796,12 +831,12 @@ public class Generador {
         String descripcion = "La serie histórica trimestral"
                 + " muestra que las evaluaciones médico legales"
                 + " para el "
-                + this.trimestre + " trimestre de " + this.anio
+                + this.trimestre + " trimestre de " + this.anio + " "
                 + getPorcentaje3(actual, anterior)
                 + " respecto al trimestre anterior y "
                 + " una variación interanual de "
                 + getPorcentajeSolo(actual, anioAnterior)
-                + "."
+                + "\\%."
                 ;
         return descripcion;
     }
@@ -855,14 +890,22 @@ public class Generador {
                 + " divididas por sexo, se identificó que el "
                 + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
                 + "\\% fueron realizadas a "
-                + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
+                + toPlural(porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase())
                 + ", mientras un "
                 + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
                 + "\\% fueron realizadas a "
-                + porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase()
+                + toPlural(porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase())
                 + "."
                 ;
         return descripcion;      
+    }
+    
+    private String toPlural(String singular){
+        switch(singular){
+            case "hombre": return "hombres";
+            case "mujer": return "mujeres";
+            default: return singular + "s";
+        }
     }
     
     private String des4_05(List<RegistroDoble> lista){
@@ -877,14 +920,14 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años, con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " evaluaciones y a mujeres entre "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
-                + "evaluaciones."
+                + getNumeroComas(mayores[0].getValor2())
+                + " evaluaciones."
                 ;
         return descripcion;
     }
@@ -893,7 +936,7 @@ public class Generador {
         int actual = (int)(lista.get(lista.size()-1).getValor());
         int anterior = (int)(lista.get(lista.size()-2).getValor());
         int anioAnterior = (int)(lista.get(lista.size()-5).getValor());
-        String descripcion = "La serie histórica del "
+        String descripcion = "La gráfica muestra la serie histórica del "
                 + this.trimestre + " trimestre de " + (this.anio-2)
                 + " al " + this.trimestre + " trimestre de " + this.anio
                 + ". La cantidad de necropsias practicadas "
@@ -908,7 +951,7 @@ public class Generador {
     
     private String des5_02(List<RegistroDepto> lista){
         List<RegistroDoble> porcentajes = getPorcentajeTotalDoble(lista);
-        String descripcion = "Dentro de las tres causas de muerte predominan"
+        String descripcion = "Dentro de las tres causas de muerte que predominan"
                 + " en las evaluaciones médicas de necropsia, resaltan las de "
                 + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
                 + " con un "
@@ -954,18 +997,19 @@ public class Generador {
     }
     
     private String des5_04(List<RegistroDepto> lista){
-        List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+        //List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+        
         String descripcion = "La distribución porcentual de las evaluaciones médicas "
                 + " de necropcias practicadas por sexo revela que el "
-                + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
+                + getNumero(lista.get(lista.size()-1).getValor())
                 + "\\% pertenecieron a "
-                + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
+                + toPlural(lista.get(lista.size()-1).getNombre().toLowerCase())
                 + ", mientras un "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + getNumero(lista.get(lista.size()-2).getValor())
                 + "\\% fueron realizadas a "
-                + porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase()
+                + toPlural(lista.get(lista.size()-2).getNombre().toLowerCase())
                 + ". Se desconoció el sexo del(la) evaluado(a) en un "
-                + getNumero(getIgnorado(lista))
+                + getNumero(getRegistro(lista, "ignorado").getValor())
                 + "\\% de las necropsias practicadas."
                 ;
         return descripcion;      
@@ -983,14 +1027,14 @@ public class Generador {
                 + " y "
                 + edadesHombres[1]
                 + " años, con "
-                + getNumeroComas(mayores[1].getValor2())
+                + getNumeroComas(mayores[1].getValor())
                 + " evaluaciones y a mujeres entre "
                 + edadesMujeres[0]
                 + " y "
                 + edadesMujeres[1]
                 + " años con "
-                + getNumeroComas(mayores[0].getValor())
-                + "evaluaciones."
+                + getNumeroComas(mayores[0].getValor2())
+                + " evaluaciones."
                 ;
         return descripcion;
     }
@@ -998,7 +1042,6 @@ public class Generador {
     private String des6_01(List<Registro> lista){
         int actual = (int)(lista.get(lista.size()-1).getValor());
         int anterior = (int)(lista.get(lista.size()-2).getValor());
-        int anioAnterior = (int)(lista.get(lista.size()-5).getValor());
         String descripcion = "La serie histórica del "
                 + this.trimestre + " trimestre de " + (this.anio-2)
                 + " al " + this.trimestre + " trimestre de " + this.anio
@@ -1021,7 +1064,7 @@ public class Generador {
                 + ", representadas con el "
                 + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
                 + "\\%, seguido de las "
-                + convertirSustantivo(porcentajes.get(porcentajes.size()-1).getNombre())
+                + convertirSustantivo(porcentajes.get(porcentajes.size()-2).getNombre())
                 + " con un "
                 + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
                 + "\\%."
@@ -1035,7 +1078,7 @@ public class Generador {
                 + this.trimestre + " trimestre de " + this.anio
                 + ", al departamento de "
                 + lista.get(lista.size()-1).getNombre()
-                + " con el "
+                + " que sobresale con el "
                 + getNumero(lista.get(lista.size()-1).getValor())
                 + "\\% de los sentenciados(as), seguido de "
                 + lista.get(lista.size()-2).getNombre()
@@ -1052,18 +1095,19 @@ public class Generador {
     }
     
     private String des6_04(List<RegistroDepto> lista){
-        List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+        //List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+      
         String descripcion = "Al considerar las sentencias condenadas divididas por sexo"
                 + ", se identificó que el "
-                + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
+                + getNumero(lista.get(lista.size()-1).getValor())
                 + "\\% correspondieron a "
-                + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
+                + toPlural(lista.get(lista.size()-1).getNombre().toLowerCase())
                 + ", mientras un "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + getNumero(lista.get(lista.size()-2).getValor())
                 + "\\% a "
-                + porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase()
+                + toPlural(lista.get(lista.size()-2).getNombre().toLowerCase())
                 + ". Se desconoció el sexo del(la) sentenciado(a) en un "
-                + getNumero(getIgnorado(lista))
+                + getNumero(getRegistro(lista, "ignorado").getValor())
                 + "\\% de los casos."
                 ;
         return descripcion;      
@@ -1080,7 +1124,7 @@ public class Generador {
                 + getNumeroComas(lista.get(0).getValor())
                 + " hombres y "
                 + getNumeroComas(lista.get(0).getValor2())
-                + "mujeres."
+                + " mujeres."
                 ;
         return descripcion;
     }
@@ -1148,18 +1192,18 @@ public class Generador {
     }
     
     private String des6_09(List<RegistroDepto> lista){
-        List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
-        String descripcion = "Al considerar las sentencias absolutorias divididas por sexo"
+        //List<RegistroDepto> porcentajes = getPorcentajeTotal(lista);
+         String descripcion = "Al considerar las sentencias absolutorias divididas por sexo"
                 + ", se identificó que el "
-                + getNumero(porcentajes.get(porcentajes.size()-1).getValor())
+                + getNumero(lista.get(lista.size()-1).getValor())
                 + "\\% correspondieron a "
-                + porcentajes.get(porcentajes.size()-1).getNombre().toLowerCase()
+                + toPlural(lista.get(lista.size()-1).getNombre().toLowerCase())
                 + ", mientras un "
-                + getNumero(porcentajes.get(porcentajes.size()-2).getValor())
+                + getNumero(lista.get(lista.size()-2).getValor())
                 + "\\% a "
-                + porcentajes.get(porcentajes.size()-2).getNombre().toLowerCase()
+                + toPlural(lista.get(lista.size()-2).getNombre().toLowerCase())
                 + ". Se desconoció el sexo del(la) sentenciado(a) en un "
-                + getNumero(getIgnorado(lista))
+                + getNumero(getRegistro(lista, "ignorado").getValor())
                 + "\\% de los casos."
                 ;
         return descripcion;      
@@ -1176,7 +1220,7 @@ public class Generador {
                 + getNumeroComas(lista.get(0).getValor())
                 + " hombres y "
                 + getNumeroComas(lista.get(0).getValor2())
-                + "mujeres."
+                + " mujeres."
                 ;
         return descripcion;
     }
@@ -1280,7 +1324,18 @@ public class Generador {
         for(int i=0; i<lista.size(); i++){
             if(lista.get(i).getNombre().equalsIgnoreCase(nombre)) return lista.get(i);
         }
+        if(nombre.equalsIgnoreCase("ignorado")){
+            return new RegistroDepto("ignorado", Double.toString(100.0 - (getTotal(lista))));
+        }
         return new RegistroDepto("No encontrado", "0.0");
+    }
+    
+    private Double getTotal(List<RegistroDepto> lista){
+        Double total = 0.0;
+        for (RegistroDepto lista1 : lista) {
+            total += lista1.getValor();
+        }
+        return total;
     }
     
     private String getPreposicion(RegistroDepto registro){
@@ -1288,13 +1343,13 @@ public class Generador {
             case "contr":
                 return "";
             case "extor":
-                return "de";
+                return "de ";
             case "homic":
-                return "de";
+                return "de ";
             case "lesio":
-                return "de";
+                return "de ";
             default:
-                return "de";
+                return "de ";
         }
     }
     
@@ -1335,7 +1390,8 @@ public class Generador {
         List<RegistroDoble> porcentajes = new ArrayList();
         for(int i=0; i<lista.size(); i++){
             if(!(lista.get(i).getNombre().toLowerCase().equals("ignorado") 
-                    || lista.get(i).getNombre().toLowerCase().equals("otras"))){
+                    || lista.get(i).getNombre().toLowerCase().equals("otras causas")
+                    || lista.get(i).getNombre().toLowerCase().equals("otros"))){
                 Double porcentaje = (lista.get(i).getValor()/total) * 100;
                 porcentajes.add(new RegistroDoble(lista.get(i).getNombre(), porcentaje.toString(), lista.get(i).getValor().toString()));
             }
@@ -1484,19 +1540,19 @@ public class Generador {
             }
         }
         
-        //if(!(csv.equals("1_05") || csv.equals("2_03") || csv.equals("4_02") || csv.equals("2_02")
-          //      || csv.equals("2_04") || csv.equals("2_05") || csv.equals("3_01") || csv.equals("5_01"))){
+        if(!(csv.equals("3_05")))
+          {
             //ordenando lista de menor a mayor
             for(int i=0; i<lista.size(); i++){
                 for(int j=i; j<lista.size(); j++){
-                    if(lista.get(i).getValor() > lista.get(j).getValor()){
+                    if(lista.get(i).getValor() >= lista.get(j).getValor()){
                         RegistroDepto aux = lista.get(i);
                         lista.set(i, lista.get(j));
                         lista.set(j, aux);
                     }
                 }
             }
-       // }
+        }
         
         return lista;
     }
@@ -1558,7 +1614,7 @@ public class Generador {
                 }
             }
         }
-        res[0] = lista.get(0);
+        res[1] = lista.get(0);
         for(int i=0; i<lista.size(); i++){
             for(int j=i; j<lista.size(); j++){
                 if((lista.get(i).getValor2()) < lista.get(j).getValor2()){
@@ -1568,7 +1624,7 @@ public class Generador {
                 }
             }
         }
-        res[1] = lista.get(0);
+        res[0] = lista.get(0);
         return res;
     }
     
